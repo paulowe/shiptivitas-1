@@ -56,6 +56,75 @@ export default class Board extends React.Component {
     );
   }
 
+  // Paul added code for Dragula features
+  componentDidMount(){
+    console.log(this.swimlanes.backlog.current)
+
+    const backlogcont = this.swimlanes.backlog.current;
+    const inprogresscont = this.swimlanes.inProgress.current;
+    const completecont = this.swimlanes.complete.current;
+
+    var clients = this.getClients()
+    console.log(clients)
+    
+    this.drake = Dragula([backlogcont,inprogresscont,completecont])
+    this.drake.on('drop',(el,target,source,sibiling)=>{
+      console.log(this)
+      this.updateState(el,target,source);
+
+
+    })
+  }
+  updateState=(el,target,source)=>{
+    // console.log(el.dataset)
+    this.drake.cancel(true)
+      var clientsList = [
+        ...this.state.clients.backlog,
+        ...this.state.clients.inProgress,
+        ...this.state.clients.complete
+      ]
+     
+      console.log(source)
+      var lane = 'backlog'
+      if(target === this.swimlanes.inProgress.current)
+      {
+        lane = 'in-progress'
+      }
+      else if(target === this.swimlanes.complete.current)
+      {
+        lane = 'complete'
+      }
+      console.log(lane)
+      clientsList = clientsList.map((client)=>{
+        if(client.id === el.dataset.id)
+        {
+          return {
+            ...client,
+            status:lane
+          }
+        }
+        else{
+          return client
+        }
+      })
+      console.log(clientsList)
+      this.setState({
+        clients: {
+          backlog: clientsList.filter(client => !client.status || client.status === 'backlog'),
+          inProgress: clientsList.filter(client => client.status && client.status === 'in-progress'),
+          complete: clientsList.filter(client => client.status && client.status === 'complete'),
+        }
+      })
+  }
+
+
+
+
+
+
+
+
+
   render() {
     return (
       <div className="Board">
